@@ -7,11 +7,13 @@
 
 import SwiftUI
 
+let game = EmojiMemoryGame()
+
 @main
 struct stanford_courseApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(viewModel: game)
         }
     }
 }
