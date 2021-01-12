@@ -7,13 +7,13 @@
 
 import SwiftUI
 
-let game = EmojiMemoryGame()
-
 @main
 struct stanford_courseApp: App {
+    @StateObject var game = EmojiMemoryGame()
+    
     var body: some Scene {
         WindowGroup {
-            ContentView(viewModel: game)
+            EmojiMemoryGameView(viewModel: game)
         }
     }
 }
