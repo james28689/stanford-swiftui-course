@@ -10,16 +10,48 @@ import SwiftUI
 struct EmojiMemoryGameView: View {
     @ObservedObject var viewModel: EmojiMemoryGame
     
+    @State private var showingThemeEdit = false
+    
     var body: some View {
-        Grid(viewModel.cards) { card in
-            CardView(card: card)
-                .onTapGesture {
-                    viewModel.choose(card)
+        VStack {
+            Text("Memory Game - \(viewModel.theme.name) Theme")
+            Grid(viewModel.cards) { card in
+                CardView(card: card)
+                    .onTapGesture {
+                        viewModel.choose(card)
+                    }
+                    .padding(5)
+            }
+            .foregroundColor(viewModel.theme.accentColor)
+            
+            HStack {
+                Text("Score: \(viewModel.score)")
+                
+                Spacer()
+                
+                Button {
+                    showingThemeEdit.toggle()
+                } label: {
+                    Label("Change Theme", systemImage: "pencil.circle.fill")
                 }
-                .padding(5)
+            }
+
         }
         .padding()
-        .foregroundColor(.orange)
+        .actionSheet(isPresented: $showingThemeEdit) {
+            ActionSheet(title: Text("Change Theme"), buttons: [
+                .default(Text(EmojiMemoryGame.themes[0].name)) {
+                    viewModel.changeTheme(EmojiMemoryGame.themes[0])
+                },
+                .default(Text(EmojiMemoryGame.themes[1].name)) {
+                    viewModel.changeTheme(EmojiMemoryGame.themes[1])
+                },
+                .default(Text(EmojiMemoryGame.themes[2].name)) {
+                    viewModel.changeTheme(EmojiMemoryGame.themes[2])
+                },
+                .cancel()
+            ])
+        }
     }
 }
 
