@@ -12,6 +12,16 @@ struct EmojiMemoryGameView: View {
     
     @State private var showingThemeEdit = false
     
+    func generateActionSheet(themes: [MemoryGame<String>.Theme]) -> ActionSheet {
+        let buttons = themes.enumerated().map { i, theme in
+            Alert.Button.default(Text(theme.name), action: {
+                viewModel.changeTheme(theme)
+            })
+        }
+        
+        return ActionSheet(title: Text("Change Theme"), buttons: buttons + [Alert.Button.cancel()])
+    }
+    
     var body: some View {
         VStack {
             Text("Memory Game - \(viewModel.theme.name) Theme")
@@ -39,18 +49,7 @@ struct EmojiMemoryGameView: View {
         }
         .padding()
         .actionSheet(isPresented: $showingThemeEdit) {
-            ActionSheet(title: Text("Change Theme"), buttons: [
-                .default(Text(EmojiMemoryGame.themes[0].name)) {
-                    viewModel.changeTheme(EmojiMemoryGame.themes[0])
-                },
-                .default(Text(EmojiMemoryGame.themes[1].name)) {
-                    viewModel.changeTheme(EmojiMemoryGame.themes[1])
-                },
-                .default(Text(EmojiMemoryGame.themes[2].name)) {
-                    viewModel.changeTheme(EmojiMemoryGame.themes[2])
-                },
-                .cancel()
-            ])
+            generateActionSheet(themes: EmojiMemoryGame.themes)
         }
     }
 }
