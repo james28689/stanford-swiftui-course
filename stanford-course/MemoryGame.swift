@@ -9,9 +9,14 @@ import Foundation
 import SwiftUI
 
 struct MemoryGame<CardContent> where CardContent: Equatable {
-    var cards: Array<Card>
+    
+    // MARK: - Stored Values
+    
+    private(set) var cards: Array<Card>
+    
     var score: Int = 0
-    var theme: Theme {
+    
+    private(set) var theme: Theme {
         willSet {
             for index in 0..<(cards.count / 2) {
                 for card in cards.filter({ $0.contentIndex == index }) {
@@ -21,7 +26,7 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
         }
     }
     
-    var onlyFaceUpCardIndex: Int? {
+    private var onlyFaceUpCardIndex: Int? {
         get { cards.indices.filter({ cards[$0].isFaceUp }).only }
         set {
             for index in cards.indices {
@@ -29,6 +34,8 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
             }
         }
     }
+    
+    // MARK: - Editing / Encapsulation functions
     
     mutating func choose(_ card: Card) {
         print("Card chosen: \(card)")
@@ -48,6 +55,16 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
         }
     }
     
+    mutating func shuffleCards() {
+        cards.shuffle()
+    }
+    
+    mutating func changeTheme(to theme: Theme) {
+        self.theme = theme
+    }
+    
+    // MARK: - Initialiser
+    
     init(numberOfPairsOfCards: Int, theme: Theme) {
         cards = Array<Card>()
         self.theme = theme
@@ -58,6 +75,8 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
             cards.append(Card(contentIndex: pairIndex, content: content))
         }
     }
+    
+    // MARK: - Child Structs
     
     struct Card: Identifiable {
         let id = UUID()

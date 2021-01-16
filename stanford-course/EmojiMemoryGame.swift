@@ -10,9 +10,9 @@ import Foundation
 class EmojiMemoryGame: ObservableObject {
     @Published private var model: MemoryGame<String> = EmojiMemoryGame.createMemoryGame(theme: EmojiMemoryGame.themes[0])
     
-    static func createMemoryGame(theme: MemoryGame<String>.Theme) -> MemoryGame<String> {
+    private static func createMemoryGame(theme: MemoryGame<String>.Theme) -> MemoryGame<String> {
         var memoryGame = MemoryGame<String>(numberOfPairsOfCards: Int.random(in: 2...5), theme: theme)
-        memoryGame.cards.shuffle()
+        memoryGame.shuffleCards()
         return memoryGame
     }
     
@@ -43,6 +43,6 @@ class EmojiMemoryGame: ObservableObject {
     }
     
     func changeTheme(_ theme: MemoryGame<String>.Theme) {
-        model.theme = theme
+        model.changeTheme(to: theme)
     }
 }
