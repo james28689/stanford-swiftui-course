@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct EmojiMemoryGameView: View {
+    
+    // MARK: - States and Functions
+    
     @ObservedObject var viewModel: EmojiMemoryGame
     
     @State private var showingThemeEdit = false
@@ -15,11 +18,15 @@ struct EmojiMemoryGameView: View {
     private func generateActionSheet(themes: [MemoryGame<String>.Theme]) -> ActionSheet {
         let buttons = themes.enumerated().map { i, theme in
             Alert.Button.default(Text(theme.name), action: {
-                viewModel.changeTheme(theme)
+                withAnimation(.easeInOut(duration: 0.7)) {
+                    viewModel.changeTheme(theme)
+                }
             })
         }
         return ActionSheet(title: Text("Change Theme"), buttons: buttons + [Alert.Button.cancel()])
     }
+    
+    // MARK: - Main Body
     
     var body: some View {
         VStack {
@@ -32,7 +39,9 @@ struct EmojiMemoryGameView: View {
             Grid(viewModel.cards) { card in
                 CardView(card: card)
                     .onTapGesture {
-                        viewModel.choose(card)
+                        withAnimation(.linear(duration: 0.7)) {
+                            viewModel.choose(card)
+                        }
                     }
                     .padding(5)
             }
@@ -46,7 +55,18 @@ struct EmojiMemoryGameView: View {
                 Button {
                     showingThemeEdit.toggle()
                 } label: {
-                    Label("Change Theme", systemImage: "pencil.circle.fill")
+                    Image(systemName: "pencil.circle.fill")
+                        .scaleEffect(1.5)
+                }
+                .padding(.trailing)
+                
+                Button {
+                    withAnimation(.easeInOut) {
+                        viewModel.resetGame()
+                    }
+                } label: {
+                    Image(systemName: "restart.circle")
+                        .scaleEffect(1.5)
                 }
             }
 
@@ -58,20 +78,44 @@ struct EmojiMemoryGameView: View {
     }
 }
 
+// MARK: - Card View
+
 struct CardView: View {
     var card: MemoryGame<String>.Card
+    
+    @State private var animatedBonusRemaining: Double = 0
+    
+    private func startBonusTimeAnimation() {
+        animatedBonusRemaining = card.bonusRemaining
+        withAnimation(.linear(duration: card.bonusTimeRemaining)) {
+            animatedBonusRemaining = 0
+        }
+    }
     
     var body: some View {
         GeometryReader { geometry in
             if card.isFaceUp || !card.isMatched {
                 ZStack {
-                    Pie(startAngle: Angle.degrees(0-90), endAngle: Angle.degrees(110-90), clockwise: true)
-                        .padding(5)
-                        .opacity(0.4)
+                    Group {
+                        if card.isConsumingBonusTime {
+                            Pie(startAngle: Angle.degrees(0-90), endAngle: Angle.degrees((-animatedBonusRemaining*360)-90), clockwise: true)
+                                .onAppear {
+                                    startBonusTimeAnimation()
+                                }
+                        } else {
+                            Pie(startAngle: Angle.degrees(0-90), endAngle: Angle.degrees((-card.bonusRemaining*360)-90), clockwise: true)
+                        }
+                    }
+                    .padding(5)
+                    .opacity(0.4)
+                    
                     Text(card.content)
                         .font(.system(size: min(geometry.size.width, geometry.size.height) * fontScaleFactor))
+                        .rotationEffect(Angle.degrees(card.isMatched ? 360 : 0))
+                        .animation(Animation.linear(duration: 0.7).repeatCount(2, autoreverses: false))
                 }
                 .cardify(isFaceUp: card.isFaceUp)
+                .transition(AnyTransition.scale)
             }
         }
     }

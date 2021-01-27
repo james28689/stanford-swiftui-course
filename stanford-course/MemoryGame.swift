@@ -55,10 +55,6 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
         }
     }
     
-    mutating func shuffleCards() {
-        cards.shuffle()
-    }
-    
     mutating func changeTheme(to theme: Theme) {
         self.theme = theme
     }
@@ -71,19 +67,77 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
         
         for pairIndex in 0..<numberOfPairsOfCards {
             let content = theme.contents[pairIndex]
-            cards.append(Card(contentIndex: pairIndex, content: content))
-            cards.append(Card(contentIndex: pairIndex, content: content))
+            cards.append(Card(id: (pairIndex * 2) - 1, contentIndex: pairIndex, content: content))
+            cards.append(Card(id: pairIndex * 2, contentIndex: pairIndex, content: content))
         }
+        
+        cards.shuffle()
     }
     
     // MARK: - Child Structs
     
     struct Card: Identifiable {
-        let id = UUID()
-        var isFaceUp: Bool = false
-        var isMatched: Bool = false
+        var id: Int
+        
+        var isFaceUp: Bool = false {
+            didSet {
+                if isFaceUp {
+                    startUsingBonusTime()
+                } else {
+                    stopUsingBonusTime()
+                }
+            }
+        }
+        
+        var isMatched: Bool = false {
+            didSet {
+                stopUsingBonusTime()
+            }
+        }
+        
         var contentIndex: Int
         var content: CardContent
+        
+        var bonusTimeLimit: TimeInterval = 6
+        
+        private var faceUpTime: TimeInterval {
+            if let lastFaceUpDate = self.lastFaceUpDate {
+                return pastFaceUpTime + Date().timeIntervalSince(lastFaceUpDate)
+            } else {
+                return pastFaceUpTime
+            }
+        }
+        
+        var lastFaceUpDate: Date?
+        
+        var pastFaceUpTime: TimeInterval = 0
+        
+        var bonusTimeRemaining: TimeInterval {
+            max(0, bonusTimeLimit - faceUpTime)
+        }
+        
+        var bonusRemaining: Double {
+            (bonusTimeLimit > 0 && bonusTimeRemaining > 0) ? bonusTimeRemaining/bonusTimeLimit : 0
+        }
+        
+        var hasEarnedBonus: Bool {
+            isMatched && bonusTimeRemaining > 0
+        }
+        
+        var isConsumingBonusTime: Bool {
+            isFaceUp && !isMatched && bonusTimeRemaining > 0
+        }
+        
+        private mutating func startUsingBonusTime() {
+            if isConsumingBonusTime, lastFaceUpDate == nil {
+                lastFaceUpDate = Date()
+            }
+        }
+        
+        private mutating func stopUsingBonusTime() {
+            pastFaceUpTime = faceUpTime
+            self.lastFaceUpDate = nil
+        }
     }
     
     struct Theme {
@@ -91,4 +145,6 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
         var contents: [CardContent]
         var accentColor: Color
     }
+    
+    
 }
