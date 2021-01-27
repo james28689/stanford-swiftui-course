@@ -108,6 +108,7 @@ struct CardView: View {
                     }
                     .padding(5)
                     .opacity(0.4)
+                    .transition(.scale)
                     
                     Text(card.content)
                         .font(.system(size: min(geometry.size.width, geometry.size.height) * fontScaleFactor))
